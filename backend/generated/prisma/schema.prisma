@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  password        String
+  name            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  profileImageUrl String?
+  bio             String?
+  followers       Int      @default(0)
+  following       Int      @default(0)
+  isVerified      Boolean  @default(false)
+  isDeleted       Boolean  @default(false)
+  isBanned        Boolean  @default(false)
+  isSuspended     Boolean  @default(false)
+  isLocked        Boolean  @default(false)
+  isPrivate       Boolean  @default(false)
+  prompts         Prompt[]
+  votes           Vote[]
+}
+
+model Prompt {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userId      String
+  imageUrl    String
+  tags        String[]
+  category    Category   @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  upVotes     Int        @default(0)
+  downVotes   Int        @default(0)
+  model       ModelNames @relation(fields: [modelId], references: [id])
+  modelId     String
+  user        User       @relation(fields: [userId], references: [id])
+  votes       Vote[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  prompts     Prompt[]
+}
+
+model ModelNames {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  prompts     Prompt[]
+}
+
+model Vote {
+  id        String   @id @default(cuid())
+  userId    String
+  promptId  String
+  value     Int
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  prompt Prompt @relation(fields: [promptId], references: [id])
+
+  @@unique([userId, promptId])
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
