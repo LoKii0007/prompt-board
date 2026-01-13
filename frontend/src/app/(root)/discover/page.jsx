@@ -131,10 +131,10 @@ export default function DiscoverPage() {
           layout
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4 mx-auto pb-20"
+          className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4 mx-auto pb-20"
         >
           {prompts.map((prompt, index) => (
-            <div key={prompt.id} className="break-inside-avoid">
+            <div key={prompt.id} className="break-inside-avoid mb-4">
               <DiscoverCard prompt={prompt} />
             </div>
           ))}
