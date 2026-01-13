@@ -8,7 +8,8 @@
     "start": "node src/app.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "postbuild": "npx prisma generate && npx prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
