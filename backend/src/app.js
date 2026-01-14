@@ -33,6 +33,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Body parser middleware
+// Note: These parsers automatically skip multipart/form-data (handled by multer)
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -61,11 +62,13 @@ app.use(notFound);
 // Error handler (must be last)
 app.use(errorHandler);
 
-// Start server
-const PORT = config.port;
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT} in ${config.nodeEnv} mode`);
-});
+// Start server only if not in Vercel serverless environment
+// Vercel will handle the serverless function execution
+if (process.env.VERCEL !== '1') {
+  const PORT = config.port;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT} in ${config.nodeEnv} mode`);
+  });
+}
 
 export default app;

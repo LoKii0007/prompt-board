@@ -13,7 +13,7 @@ export const config = {
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   },
   cors: {
-    origin: ["http://localhost:3000", "https://prompt-board-nu.vercel.app"],
+    origin: ["http://localhost:3000", "https://prompt-board-nu.vercel.app", "https://promtboard.lok1.dev"],
   },
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID,

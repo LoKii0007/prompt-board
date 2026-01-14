@@ -1,7 +1,7 @@
 import express from 'express';
 import { UploadController } from '../controllers/uploadController.js';
 import { authenticate } from '../../../middlewares/auth.js';
-import { uploadSingle, uploadMultiple } from '../../../middlewares/upload.js';
+import { uploadSingle, uploadMultiple, handleMulterError } from '../../../middlewares/upload.js';
 
 const router = express.Router();
 
@@ -14,6 +14,7 @@ router.post(
   '/image',
   authenticate,
   uploadSingle,
+  handleMulterError,
   UploadController.uploadImage
 );
 
@@ -26,6 +27,7 @@ router.post(
   '/images',
   authenticate,
   uploadMultiple,
+  handleMulterError,
   UploadController.uploadImages
 );
 

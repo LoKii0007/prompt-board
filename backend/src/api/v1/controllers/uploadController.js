@@ -14,7 +14,13 @@ export class UploadController {
         });
       }
 
+      console.log('Starting image upload to Cloudinary...');
+      const startTime = Date.now();
+      
       const result = await UploadService.uploadToCloudinary(req.file);
+      
+      const uploadTime = Date.now() - startTime;
+      console.log(`Image uploaded successfully in ${uploadTime}ms`);
 
       res.status(200).json({
         success: true,
@@ -26,10 +32,11 @@ export class UploadController {
       });
     } catch (error) {
       console.error('Upload error:', error);
+      console.error('Error stack:', error.stack);
       res.status(500).json({
         success: false,
         message: error.message || 'Failed to upload image',
-        error: error.message,
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
       });
     }
   }

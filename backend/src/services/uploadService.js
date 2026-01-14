@@ -17,6 +17,11 @@ export class UploadService {
    */
   static async uploadToCloudinary(file) {
     return new Promise((resolve, reject) => {
+      // Set a timeout for the upload (50 seconds to be safe)
+      const timeout = setTimeout(() => {
+        reject(new Error('Upload timeout: Cloudinary upload took too long'));
+      }, 50000);
+
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'prompt-board',
@@ -30,6 +35,7 @@ export class UploadService {
           ],
         },
         (error, result) => {
+          clearTimeout(timeout);
           if (error) {
             reject(error);
           } else {
@@ -38,8 +44,18 @@ export class UploadService {
         }
       );
 
+      // Handle stream errors
+      uploadStream.on('error', (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      });
+
       // Convert buffer to stream and pipe to Cloudinary
       const stream = this.bufferToStream(file.buffer);
+      stream.on('error', (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      });
       stream.pipe(uploadStream);
     });
   }
