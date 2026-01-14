@@ -22,26 +22,40 @@ export const metadata = {
     default: "PromptBoard - Discover & Share AI Prompts",
     template: "%s | PromptBoard",
   },
-  description: "The Pinterest for AI prompts. Discover, share, and organize your favorite Midjourney, Stable Diffusion, and DALL-E prompts. The ultimate visual discovery engine for AI art.",
-  keywords: ["AI prompts", "prompt engineering", "Midjourney", "Stable Diffusion", "DALL-E", "AI art", "inspiration", "visual discovery", "creative prompts"],
+  description:
+    "The Pinterest for AI prompts. Discover, share, and organize your favorite Midjourney, Stable Diffusion, and DALL-E prompts. The ultimate visual discovery engine for AI art.",
+  keywords: [
+    "AI prompts",
+    "prompt engineering",
+    "Midjourney",
+    "Stable Diffusion",
+    "DALL-E",
+    "AI art",
+    "inspiration",
+    "visual discovery",
+    "creative prompts",
+  ],
   authors: [{ name: "PromptBoard" }],
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://promptboard.com",
     title: "PromptBoard - The Pinterest for AI Prompts",
-    description: "Join the community of creators. Discover and share the best AI prompts for your next masterpiece.",
+    description:
+      "Join the community of creators. Discover and share the best AI prompts for your next masterpiece.",
     siteName: "PromptBoard",
   },
   twitter: {
     card: "summary_large_image",
     title: "PromptBoard - Discover & Share AI Prompts",
-    description: "The visual discovery engine for AI prompts. Find inspiration for your next AI art creation.",
+    description:
+      "The visual discovery engine for AI prompts. Find inspiration for your next AI art creation.",
   },
 };
 
 export default function RootLayout({ children }) {
   const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const websiteId = process.env.NEXT_PUBLIC_WEBSITE_ID;
 
   return (
     <html lang="en">
@@ -60,6 +74,11 @@ export default function RootLayout({ children }) {
           </QueryProvider>
         </GoogleOAuthProvider>
       </body>
+      <script
+        defer
+        src="https://silentpulse.vercel.app/script.js"
+        data-website-id={websiteId}
+      ></script>
     </html>
   );
 }
