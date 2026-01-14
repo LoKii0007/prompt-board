@@ -29,6 +29,7 @@ import { useUploadImage } from "@/hooks/useUpload";
 import { useGetCategories } from "@/hooks/useCategories";
 import { useGetModels } from "@/hooks/useModels";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 export default function CreatePromptPage() {
   const router = useRouter();
@@ -91,13 +92,13 @@ export default function CreatePromptPage() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast.error('Please select an image file');
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      toast.error('Image size must be less than 5MB');
       return;
     }
 
@@ -119,7 +120,7 @@ export default function CreatePromptPage() {
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      alert('Failed to upload image. Please try again.');
+      toast.error('Failed to upload image. Please try again.');
       setSelectedImage(null);
       setImagePreview(null);
       if (fileInputRef.current) {
@@ -142,7 +143,7 @@ export default function CreatePromptPage() {
     try {
       // Ensure we have an image URL
       if (!uploadedImageUrl && !data.imageUrl) {
-        alert('Please upload an image');
+        toast.error('Please upload an image');
         return;
       }
 

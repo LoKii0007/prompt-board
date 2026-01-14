@@ -161,10 +161,10 @@ export function DiscoverContent() {
             layout
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4 mx-auto pb-20"
+            className=" pb-20 mosanry-layout space-x-4 "
           >
             {prompts.map((prompt) => (
-              <div key={prompt.id} className="break-inside-avoid mb-4">
+              <div key={prompt.id} className="">
                 <DiscoverCard prompt={prompt} />
               </div>
             ))}
@@ -176,8 +176,8 @@ export function DiscoverContent() {
             {isFetchingNextPage
               ? "Loading more prompts..."
               : hasNextPage
-              ? "Scroll to load more"
-              : "No more prompts"}
+                ? "Scroll to load more"
+                : "No more prompts"}
           </div>
         </>
       )}

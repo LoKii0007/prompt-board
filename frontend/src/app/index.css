@@ -1,3 +1,19 @@
 button{
     cursor: pointer;
 }
+
+.mosanry-layout{
+    columns:280px
+}
+
+@media (max-width: 768px) {
+    .mosanry-layout{
+        columns:200px
+    }
+}
+
+@media (max-width: 480px) {
+    .mosanry-layout{
+        columns:170px
+    }
+}

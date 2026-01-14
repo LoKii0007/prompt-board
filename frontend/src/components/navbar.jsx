@@ -42,8 +42,8 @@ export function Navbar() {
 
     const navItems = [
         { name: "Discover", href: "/discover", icon: Compass },
-        { name: "My Prompts", href: "/prompts", icon: LayoutGrid },
         { name: "Create", href: "/prompts/create", icon: PlusCircle },
+        { name: "My Prompts", href: "/prompts", icon: LayoutGrid },
         { name: "Profile", href: "/profile", icon: User },
     ];
 
@@ -89,7 +89,7 @@ export function Navbar() {
                     {/* Desktop Navigation */}
                     {isAuthenticated && (
                         <div className="hidden md:flex items-center gap-6">
-                            {navItems.filter(item => item.href !== '/prompts').map((item) => {
+                            {navItems.slice(0, 2).map((item) => {
                                 const Icon = item.icon;
                                 const isActive = pathname === item.href;
                                 return (
