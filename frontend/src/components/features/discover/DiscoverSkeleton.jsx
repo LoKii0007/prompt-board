@@ -1,6 +1,12 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function DiscoverSkeleton() {
+    // Deterministic heights based on index to avoid hydration mismatch
+    const getHeight = (index) => {
+        const heights = [228, 280, 320, 250, 300, 270, 290, 240, 310, 260, 285, 255];
+        return heights[index % heights.length];
+    };
+
     return (
         <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4 mx-auto">
             {Array.from({ length: 12 }).map((_, i) => (
@@ -12,7 +18,7 @@ export function DiscoverSkeleton() {
                     <Skeleton
                         className="w-full"
                         style={{
-                            height: `${Math.floor(Math.random() * (400 - 200 + 1) + 200)}px`,
+                            height: `${getHeight(i)}px`,
                         }}
                     />
                     <div className="p-4 space-y-2">

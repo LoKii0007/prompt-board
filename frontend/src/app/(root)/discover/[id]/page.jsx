@@ -306,7 +306,7 @@ export default function PromptDetailPage() {
 
           <Card className="bg-card/50 backdrop-blur-sm p-6 border-white/10">
             <h3 className="font-semibold text-lg mb-2">Prompt</h3>
-            <p className="font-mono text-sm leading-relaxed text-muted-foreground p-4 bg-black/20 rounded-md border border-white/5 whitespace-pre-wrap">
+            <p className="font-mono text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
               {prompt.description}
             </p>
           </Card>
