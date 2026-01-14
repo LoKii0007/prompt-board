@@ -9,11 +9,16 @@ export function useVoteOnPrompt() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ promptId, value }) => 
-      baseApi.post('/votes', { promptId, value }),
-    onSuccess: (data, variables) => {
-      // Invalidate relevant queries
+    mutationFn: ({ promptId, value }) => {
+      // Backend expects 1 for upvote, -1 for downvote
+      // If same value is sent again, backend removes the vote
+      return baseApi.post('/votes', { promptId, value });
+    },
+    // No optimistic updates here - handled locally in component with debounce
+    // Always refetch after error or success to keep in sync with server
+    onSettled: (_, __, variables) => {
       queryClient.invalidateQueries({ queryKey: ['discover'] });
+      queryClient.invalidateQueries({ queryKey: ['discover-infinite'] });
       queryClient.invalidateQueries({ queryKey: ['discover', variables.promptId] });
       queryClient.invalidateQueries({ queryKey: ['prompts'] });
       queryClient.invalidateQueries({ queryKey: ['votes', variables.promptId] });

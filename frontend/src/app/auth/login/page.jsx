@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,15 +16,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { Chrome } from "lucide-react";
-import { useLogin } from "@/hooks/useAuth";
+import { GoogleLogin } from "@react-oauth/google";
+import { useLogin, useGoogleAuth } from "@/hooks/useAuth";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const { register: registerForm, handleSubmit, formState: { errors } } = useForm();
   const { isAuthenticated, isLoading: authLoading } = useAuthContext();
   const loginMutation = useLogin();
+  const googleAuthMutation = useGoogleAuth();
+  const [showPassword, setShowPassword] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -45,8 +48,26 @@ export default function LoginPage() {
     }
   };
 
-  const isLoading = loginMutation.isPending;
-  const error = loginMutation.error;
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      if (credentialResponse.credential) {
+        const result = await googleAuthMutation.mutateAsync(credentialResponse.credential);
+        if (result?.data?.success) {
+          router.push("/discover");
+        }
+      }
+    } catch (error) {
+      // Error is handled by the mutation
+      console.error(error);
+    }
+  };
+
+  const handleGoogleError = () => {
+    console.error("Google login failed");
+  };
+
+  const isLoading = loginMutation.isPending || googleAuthMutation.isPending;
+  const error = loginMutation.error || googleAuthMutation.error;
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center p-4">
@@ -67,10 +88,16 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="grid gap-4">
             <div className="grid grid-cols-1 gap-2">
-              <Button variant="outline" className="w-full gap-2">
-                <Chrome className="h-4 w-4" />
-                Google
-              </Button>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleError}
+                useOneTap={false}
+                theme="outline"
+                size="large"
+                text="signin_with"
+                shape="rectangular"
+                width="100%"
+              />
             </div>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -108,17 +135,33 @@ export default function LoginPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  {...registerForm("password", {
-                    required: "Password is required",
-                    minLength: {
-                      value: 6,
-                      message: "Password must be at least 6 characters",
-                    },
-                  })}
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    className="pr-10"
+                    {...registerForm("password", {
+                      required: "Password is required",
+                      minLength: {
+                        value: 6,
+                        message: "Password must be at least 6 characters",
+                      },
+                    })}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-black hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
                 {errors.password && (
                   <p className="text-sm text-red-400">{errors.password.message}</p>
                 )}

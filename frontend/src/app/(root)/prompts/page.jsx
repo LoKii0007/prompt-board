@@ -58,13 +58,13 @@ export default function PromptsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 min-h-screen">
-      <div className="flex items-center justify-between mb-12">
+      <div className="flex flex-col gap-4 md:flex-row items-center md:justify-between mb-12">
         <div>
           <h1 className="text-4xl font-bold tracking-tight mb-2">My Collections</h1>
           <p className="text-muted-foreground">Manage and organize your AI masterpieces.</p>
         </div>
         <Link href="/prompts/create">
-          <Button className="gap-2 rounded-full px-6 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
+          <Button className="gap-2 rounded-full px-6 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all w-full md:w-auto max-w-sm">
             <Plus className="h-4 w-4" />
             Create Prompt
           </Button>
@@ -87,7 +87,7 @@ export default function PromptsPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           <AnimatePresence>
             {prompts.map((prompt) => (
               <PromptCard

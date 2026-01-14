@@ -1,20 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Sparkles, Compass, PlusCircle, LayoutGrid, User, LogOut, Menu, X } from "lucide-react";
+import { Sparkles, Compass, PlusCircle, LayoutGrid, User, LogOut, Menu, X, Settings } from "lucide-react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function Navbar() {
     const pathname = usePathname();
     const { isAuthenticated, user, logout, isLoading } = useAuthContext();
     const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    // Desktop Profile Dropdown State
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const closeTimeoutRef = useRef(null);
 
     const navItems = [
         { name: "Discover", href: "/discover", icon: Compass },
@@ -26,7 +38,25 @@ export function Navbar() {
         logout();
         router.push("/");
         setIsMobileMenuOpen(false);
+        setIsProfileOpen(false);
     };
+
+    const handleMouseEnter = () => {
+        if (closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current);
+            closeTimeoutRef.current = null;
+        }
+        setIsProfileOpen(true);
+    };
+
+    const handleMouseLeave = () => {
+        closeTimeoutRef.current = setTimeout(() => {
+            setIsProfileOpen(false);
+        }, 150);
+    };
+
+    // Get user initial for avatar
+    const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : "U");
 
     return (
         <>
@@ -46,7 +76,7 @@ export function Navbar() {
                     {/* Desktop Navigation */}
                     {isAuthenticated && (
                         <div className="hidden md:flex items-center gap-6">
-                            {navItems.map((item) => {
+                            {navItems.filter(item => item.href !== '/prompts').map((item) => {
                                 const Icon = item.icon;
                                 const isActive = pathname === item.href;
                                 return (
@@ -71,23 +101,55 @@ export function Navbar() {
                         {isLoading ? (
                             <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
                         ) : isAuthenticated ? (
-                            <>
-                                <Link href="/profile">
-                                    <Button variant="ghost" size="sm" className="gap-2">
-                                        <User className="h-4 w-4" />
-                                        {user?.name || user?.email || "Profile"}
-                                    </Button>
-                                </Link>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="gap-2"
-                                    onClick={handleLogout}
+                            <DropdownMenu open={isProfileOpen} onOpenChange={setIsProfileOpen} modal={false}>
+                                <DropdownMenuTrigger asChild>
+                                    <div
+                                        onMouseEnter={handleMouseEnter}
+                                        onMouseLeave={handleMouseLeave}
+                                        className="outline-none"
+                                    >
+                                        <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 overflow-hidden border border-white/10 hover:border-primary/50 transition-colors">
+                                            <div className="flex h-full w-full items-center justify-center bg-zinc-800 text-base font-semibold text-white">
+                                                {userInitial}
+                                            </div>
+                                        </Button>
+                                    </div>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="w-56 bg-zinc-950 border-zinc-800"
+                                    onMouseEnter={handleMouseEnter}
+                                    onMouseLeave={handleMouseLeave}
                                 >
-                                    <LogOut className="h-4 w-4" />
-                                    Logout
-                                </Button>
-                            </>
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{user?.name}</p>
+                                            <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator className="bg-white/10" />
+                                    <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 focus:text-white hover:bg-white/10 hover:text-white">
+                                        <Link href="/profile" onClick={() => setIsProfileOpen(false)}>
+                                            <User className="mr-2 h-4 w-4" />
+                                            <span>Profile</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild className="cursor-pointer focus:bg-white/10 focus:text-white hover:bg-white/10 hover:text-white">
+                                        <Link href="/prompts" onClick={() => setIsProfileOpen(false)}>
+                                            <LayoutGrid className="mr-2 h-4 w-4" />
+                                            <span>My Prompts</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator className="bg-white/10" />
+                                    <DropdownMenuItem
+                                        onClick={handleLogout}
+                                        className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-950/20 hover:bg-red-950/20 hover:text-red-400"
+                                    >
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        <span>Logout</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         ) : (
                             <>
                                 <Link href="/auth/login">

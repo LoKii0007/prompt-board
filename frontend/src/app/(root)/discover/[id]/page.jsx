@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,11 +12,14 @@ import { useGetDiscoverPrompts } from "@/hooks/usePrompts";
 import { useVoteOnPrompt } from "@/hooks/useVotes";
 import { useAuthContext } from "@/contexts/AuthContext";
 
+const DEBOUNCE_DELAY = 400; // ms
+
 export default function PromptDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id;
   const [copied, setCopied] = useState(false);
+  const [errorToast, setErrorToast] = useState(null);
   const { isAuthenticated } = useAuthContext();
   const voteMutation = useVoteOnPrompt();
 
@@ -25,16 +28,136 @@ export default function PromptDetailPage() {
   
   const prompt = data?.data?.prompt;
   const relatedPrompts = relatedData?.data?.prompts?.filter((p) => p.id !== id).slice(0, 4) || [];
-  const userVote = prompt?.userVote; // 1 for upvote, -1 for downvote, null for no vote
+  
+  // Local state for instant UI updates
+  const [localUserVote, setLocalUserVote] = useState(prompt?.userVote);
+  const [localUpVotes, setLocalUpVotes] = useState(prompt?.upVotes || 0);
+  const [localDownVotes, setLocalDownVotes] = useState(prompt?.downVotes || 0);
+  
+  // Store original server state for rollback
+  const serverStateRef = useRef({
+    userVote: prompt?.userVote,
+    upVotes: prompt?.upVotes || 0,
+    downVotes: prompt?.downVotes || 0,
+  });
+  
+  // Debounce timer ref
+  const debounceTimerRef = useRef(null);
+  const pendingVoteRef = useRef(null);
 
-  const handleVote = async (value) => {
+  // Sync local state when prompt prop changes (from server refetch)
+  useEffect(() => {
+    if (prompt) {
+      setLocalUserVote(prompt.userVote);
+      setLocalUpVotes(prompt.upVotes || 0);
+      setLocalDownVotes(prompt.downVotes || 0);
+      serverStateRef.current = {
+        userVote: prompt.userVote,
+        upVotes: prompt.upVotes || 0,
+        downVotes: prompt.downVotes || 0,
+      };
+    }
+  }, [prompt?.id, prompt?.userVote, prompt?.upVotes, prompt?.downVotes]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleVote = (value) => {
     if (!isAuthenticated) {
       router.push("/auth/login");
       return;
     }
 
-    voteMutation.mutate({ promptId: id, value });
+    // Cancel previous debounce timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    // Update local state instantly
+    let newUserVote = localUserVote;
+    let newUpVotes = localUpVotes;
+    let newDownVotes = localDownVotes;
+
+    // Toggle logic: if clicking same vote, remove it; otherwise switch vote
+    if (localUserVote === value) {
+      // Remove vote
+      if (value === 1) newUpVotes = Math.max(0, newUpVotes - 1);
+      if (value === -1) newDownVotes = Math.max(0, newDownVotes - 1);
+      newUserVote = null;
+    } else {
+      // Remove previous vote if exists
+      if (localUserVote === 1) newUpVotes = Math.max(0, newUpVotes - 1);
+      if (localUserVote === -1) newDownVotes = Math.max(0, newDownVotes - 1);
+      
+      // Apply new vote
+      if (value === 1) newUpVotes += 1;
+      if (value === -1) newDownVotes += 1;
+      newUserVote = value;
+    }
+
+    // Update UI instantly
+    setLocalUserVote(newUserVote);
+    setLocalUpVotes(newUpVotes);
+    setLocalDownVotes(newDownVotes);
+
+    // Store pending vote
+    pendingVoteRef.current = newUserVote;
+
+    // Debounce API call
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        // Backend expects 1 or -1. If we want to remove vote, send the current server vote value
+        // (backend will remove it). Otherwise send the new vote value.
+        let valueToSend;
+        if (newUserVote === null) {
+          // Want to remove vote - send current server vote to toggle it off
+          valueToSend = serverStateRef.current.userVote;
+          // If no server vote exists, skip API call (shouldn't happen)
+          if (valueToSend === null) {
+            debounceTimerRef.current = null;
+            pendingVoteRef.current = null;
+            return;
+          }
+        } else {
+          // New vote value
+          valueToSend = newUserVote;
+        }
+
+        await voteMutation.mutateAsync({ 
+          promptId: id, 
+          value: valueToSend 
+        });
+        // Update server state ref on success
+        serverStateRef.current = {
+          userVote: newUserVote,
+          upVotes: newUpVotes,
+          downVotes: newDownVotes,
+        };
+      } catch (error) {
+        // Rollback to server state on error
+        console.error("Failed to submit vote:", error);
+        setLocalUserVote(serverStateRef.current.userVote);
+        setLocalUpVotes(serverStateRef.current.upVotes);
+        setLocalDownVotes(serverStateRef.current.downVotes);
+        
+        const message = error?.message || "Failed to update vote. Please try again.";
+        setErrorToast(message);
+        setTimeout(() => setErrorToast(null), 3000);
+      } finally {
+        pendingVoteRef.current = null;
+        debounceTimerRef.current = null;
+      }
+    }, DEBOUNCE_DELAY);
   };
+
+  const userVote = localUserVote; // Use local state for UI
 
   const handleCopy = () => {
     if (prompt?.description) {
@@ -198,10 +321,10 @@ export default function PromptDetailPage() {
                     : "hover:text-green-400 hover:bg-green-400/10"
                 }`}
                 onClick={() => handleVote(1)}
-                disabled={!isAuthenticated || voteMutation.isPending}
+                disabled={!isAuthenticated}
               >
                 <ThumbsUp className="h-5 w-5" />
-                <span className="font-bold">{prompt.upVotes || 0}</span>
+                <span className="font-bold">{localUpVotes}</span>
               </Button>
               <Button
                 variant="ghost"
@@ -211,10 +334,10 @@ export default function PromptDetailPage() {
                     : "hover:text-red-400 hover:bg-red-400/10"
                 }`}
                 onClick={() => handleVote(-1)}
-                disabled={!isAuthenticated || voteMutation.isPending}
+                disabled={!isAuthenticated}
               >
                 <ThumbsDown className="h-5 w-5" />
-                <span className="font-bold">{prompt.downVotes || 0}</span>
+                <span className="font-bold">{localDownVotes}</span>
               </Button>
             </div>
             <Button
@@ -225,6 +348,12 @@ export default function PromptDetailPage() {
               <AlertCircle className="h-4 w-4" /> Report
             </Button>
           </div>
+          
+          {errorToast && (
+            <div className="fixed bottom-4 right-4 z-50 rounded-md bg-red-500 text-white px-3 py-2 shadow-lg text-sm">
+              {errorToast}
+            </div>
+          )}
 
           {/* Author Info */}
           {prompt.user && (

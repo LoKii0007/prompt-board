@@ -41,6 +41,13 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("user");
   };
 
+  const updateUser = (newUserData) => {
+    // Merge with existing user data to preserve fields not returned by update API if any
+    const updatedUser = { ...user, ...newUserData };
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  };
+
   const isAuthenticated = !!user && !!token;
 
   return (
@@ -52,6 +59,7 @@ export function AuthProvider({ children }) {
         isLoading,
         login,
         logout,
+        updateUser,
       }}
     >
       {children}

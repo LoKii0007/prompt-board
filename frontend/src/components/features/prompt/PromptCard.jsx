@@ -38,6 +38,7 @@ export function PromptCard({ prompt, onDelete, isDeleting }) {
             className="group relative rounded-2xl overflow-hidden bg-zinc-900 border border-white/5 shadow-md hover:shadow-xl transition-all duration-500"
         >
             {/* Image Display */}
+            {/* Image Display */}
             <div className="aspect-4/5 overflow-hidden relative">
                 <img
                     src={prompt.imageUrl}
@@ -49,26 +50,26 @@ export function PromptCard({ prompt, onDelete, isDeleting }) {
                     }}
                 />
 
-                {/* Gradient Overlay - Always there but stronger on hover */}
-                <div className="absolute inset-0 bg-linear-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300" />
+                {/* Gradient Overlay - Stronger on mobile for readability, dynamic on desktop */}
+                <div className="absolute inset-0 bg-linear-to-t from-black via-black/20 to-transparent opacity-90 md:opacity-60 md:group-hover:opacity-90 transition-opacity duration-300" />
 
                 {/* Top Actions */}
-                <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-[-10px] group-hover:translate-y-0">
-                    <Badge className="bg-black/50 backdrop-blur border-none hover:bg-black/70">
+                <div className="absolute top-3 right-3 flex gap-2 opacity-100 translate-y-0 md:opacity-0 md:translate-y-[-10px] md:group-hover:opacity-100 md:group-hover:translate-y-0 transition-all duration-300">
+                    <Badge className="bg-black/50 backdrop-blur border-none text-white hover:bg-black/70 capitalize">
                         {prompt.category?.name || "General"}
                     </Badge>
                 </div>
 
                 {/* Content Content (Bottom) */}
-                <div className="absolute bottom-0 left-0 right-0 p-5 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                    <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">
+                <div className="absolute bottom-0 left-0 right-0 p-2 md:p-5 translate-y-0 md:translate-y-2 md:group-hover:translate-y-0 transition-transform duration-300">
+                    <h3 className="text-sm md:text-lg font-semibold md:font-bold text-white mb-1 line-clamp-1">
                         {prompt.title}
                     </h3>
 
-                    <div className="h-0 group-hover:h-auto overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100">
-                        <p className="text-sm text-gray-300 line-clamp-2 mb-3">
+                    <div className="h-auto opacity-100 md:h-0 md:opacity-0 md:group-hover:h-auto md:group-hover:opacity-100 overflow-hidden transition-all duration-300">
+                        {/* <p className="text-xs md:text-sm text-gray-300 line-clamp-2 mb-3">
                             {prompt.description}
-                        </p>
+                        </p> */}
 
                         <div className="flex items-center justify-between pt-2 border-t border-white/10">
                             <Button
@@ -81,7 +82,7 @@ export function PromptCard({ prompt, onDelete, isDeleting }) {
                                     <span className="text-green-400">Copied!</span>
                                 ) : (
                                     <>
-                                        <Copy className="w-3 h-3 mr-1.5" /> Copy Prompt
+                                        <Copy className="w-3 h-3" />
                                     </>
                                 )}
                             </Button>

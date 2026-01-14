@@ -37,3 +37,50 @@ baseApi.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
+// Response interceptor to handle errors and extract proper error messages
+baseApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Extract error message from response
+    let errorMessage = "An error occurred";
+
+    if (error.response) {
+      // Server responded with error status
+      const { data } = error.response;
+      
+      if (data?.message) {
+        errorMessage = data.message;
+      } else if (data?.error) {
+        errorMessage = data.error;
+      } else if (data?.errors && Array.isArray(data.errors)) {
+        // Handle validation errors
+        errorMessage = data.errors.map(err => err.msg || err.message).join(", ");
+      } else if (error.response.status === 401) {
+        errorMessage = "Unauthorized. Please login again.";
+      } else if (error.response.status === 403) {
+        errorMessage = "Access forbidden";
+      } else if (error.response.status === 404) {
+        errorMessage = "Resource not found";
+      } else if (error.response.status === 409) {
+        errorMessage = "Conflict. This resource already exists.";
+      } else if (error.response.status >= 500) {
+        errorMessage = "Server error. Please try again later.";
+      }
+    } else if (error.request) {
+      // Request was made but no response received
+      errorMessage = "Network error. Please check your connection.";
+    } else {
+      // Something else happened
+      errorMessage = error.message || "An unexpected error occurred";
+    }
+
+    // Create a new error with the extracted message
+    const customError = new Error(errorMessage);
+    customError.response = error.response;
+    customError.request = error.request;
+    customError.status = error.response?.status;
+
+    return Promise.reject(customError);
+  }
+);

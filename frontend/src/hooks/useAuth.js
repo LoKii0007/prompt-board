@@ -31,3 +31,17 @@ export function useLogin() {
     },
   });
 }
+
+export function useGoogleAuth() {
+  const { login } = useAuthContext();
+  
+  return useMutation({
+    mutationFn: (idToken) => baseApi.post('/auth/google', { idToken }),
+    onSuccess: (response) => {
+      // Store token and user in context and localStorage
+      if (response?.data?.success && response?.data?.data) {
+        login(response.data.data.user, response.data.data.token);
+      }
+    },
+  });
+}

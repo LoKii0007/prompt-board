@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { baseApi } from '@/lib/api';
 
 export function useCreatePrompt() {
@@ -35,6 +35,26 @@ export function useGetDiscoverPrompts(page = 1, limit = 10, categoryId = null, m
       if (tag) params.append('tag', tag);
       const response = await baseApi.get(`/discover?${params.toString()}`);
       return response.data;
+    },
+  });
+}
+
+export function useInfiniteDiscoverPrompts(limit = 10, categoryId = null, modelId = null, tag = null) {
+  return useInfiniteQuery({
+    queryKey: ['discover-infinite', limit, categoryId, modelId, tag],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params = new URLSearchParams({ page: pageParam, limit });
+      if (categoryId) params.append('categoryId', categoryId);
+      if (modelId) params.append('modelId', modelId);
+      if (tag) params.append('tag', tag);
+      const response = await baseApi.get(`/discover?${params.toString()}`);
+      return response.data;
+    },
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage?.data?.pagination;
+      if (!pagination) return undefined;
+      const { page, totalPages } = pagination;
+      return page < totalPages ? page + 1 : undefined;
     },
   });
 }

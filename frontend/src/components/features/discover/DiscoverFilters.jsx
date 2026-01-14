@@ -49,7 +49,7 @@ export function DiscoverFilters({
                         <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     </div>
                     <Input
-                        className="pl-10 bg-transparent border-transparent focus-visible:ring-0 focus-visible:ring-offset-0 h-10 placeholder:text-muted-foreground/50"
+                        className="pl-10 bg-transparent border-transparent focus-visible:ring-0 text-white focus-visible:ring-offset-0 h-10 placeholder:text-muted-foreground/50"
                         placeholder="Search by tag (e.g. cyberpunk, nature)..."
                         value={tag}
                         onChange={(e) => setTag(e.target.value)}
