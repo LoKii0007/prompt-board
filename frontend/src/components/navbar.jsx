@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,18 @@ export function Navbar() {
     const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    // Prevent scrolling when mobile menu is open
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "unset";
+        }
+        return () => {
+            document.body.style.overflow = "unset";
+        };
+    }, [isMobileMenuOpen]);
+
     // Desktop Profile Dropdown State
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const closeTimeoutRef = useRef(null);
@@ -32,6 +44,7 @@ export function Navbar() {
         { name: "Discover", href: "/discover", icon: Compass },
         { name: "My Prompts", href: "/prompts", icon: LayoutGrid },
         { name: "Create", href: "/prompts/create", icon: PlusCircle },
+        { name: "Profile", href: "/profile", icon: User },
     ];
 
     const handleLogout = () => {
